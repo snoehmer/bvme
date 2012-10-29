@@ -6,7 +6,8 @@ close all;
 
 %% common definitions
 
-image_filename = '../images/butterfly.jpg';
+%image_filename = '../images/butterfly.jpg';
+image_filename = 'testimage.png';
 
 gauss_sigma = 0.5;
 
@@ -48,7 +49,7 @@ angle_limits = [-inf -7*pi/8:pi/4:7*pi/8 inf];
 [~, angle_directions_full] = histc(image_angle, angle_limits);
 
 % combine the same directions: 1=0°, 2=45°, 3=90°, 4=135°
-angle_directions = zeros(size(angle_directions_full));
+angle_directions = angle_directions_full;
 angle_directions(angle_directions_full == 5 | angle_directions_full == 9) = 1;
 angle_directions(angle_directions_full == 6) = 2;
 angle_directions(angle_directions_full == 7) = 3;
@@ -71,17 +72,17 @@ image_magnitude_shifted_dr = image_magnitude_b(3:size(image_magnitude, 1)+2, 3:s
 image_magnitude_diff1 = zeros(size(image_magnitude));
 image_magnitude_diff2 = zeros(size(image_magnitude));
 
-image_magnitude_diff1(angle_directions == 1) = image_magnitude(angle_directions == 1) - image_magnitude_shifted_u(angle_directions == 1);
-image_magnitude_diff2(angle_directions == 1) = image_magnitude(angle_directions == 1) - image_magnitude_shifted_d(angle_directions == 1);
+image_magnitude_diff1(angle_directions == 1) = image_magnitude(angle_directions == 1) - image_magnitude_shifted_l(angle_directions == 1);
+image_magnitude_diff2(angle_directions == 1) = image_magnitude(angle_directions == 1) - image_magnitude_shifted_r(angle_directions == 1);
 
-image_magnitude_diff1(angle_directions == 2) = image_magnitude(angle_directions == 2) - image_magnitude_shifted_ul(angle_directions == 2);
-image_magnitude_diff2(angle_directions == 2) = image_magnitude(angle_directions == 2) - image_magnitude_shifted_dr(angle_directions == 2);
+image_magnitude_diff1(angle_directions == 2) = image_magnitude(angle_directions == 2) - image_magnitude_shifted_ur(angle_directions == 2);
+image_magnitude_diff2(angle_directions == 2) = image_magnitude(angle_directions == 2) - image_magnitude_shifted_dl(angle_directions == 2);
 
-image_magnitude_diff1(angle_directions == 3) = image_magnitude(angle_directions == 3) - image_magnitude_shifted_l(angle_directions == 3);
-image_magnitude_diff2(angle_directions == 3) = image_magnitude(angle_directions == 3) - image_magnitude_shifted_r(angle_directions == 3);
+image_magnitude_diff1(angle_directions == 3) = image_magnitude(angle_directions == 3) - image_magnitude_shifted_u(angle_directions == 3);
+image_magnitude_diff2(angle_directions == 3) = image_magnitude(angle_directions == 3) - image_magnitude_shifted_d(angle_directions == 3);
 
-image_magnitude_diff1(angle_directions == 4) = image_magnitude(angle_directions == 4) - image_magnitude_shifted_dl(angle_directions == 4);
-image_magnitude_diff2(angle_directions == 4) = image_magnitude(angle_directions == 4) - image_magnitude_shifted_ur(angle_directions == 4);
+image_magnitude_diff1(angle_directions == 4) = image_magnitude(angle_directions == 4) - image_magnitude_shifted_ul(angle_directions == 4);
+image_magnitude_diff2(angle_directions == 4) = image_magnitude(angle_directions == 4) - image_magnitude_shifted_dr(angle_directions == 4);
 
 % suppress all pixels which are not the maximum
 image_nonmax = image_magnitude;
@@ -144,8 +145,8 @@ while 1
     % else continue with the next iteration
     last_strong_edges = strong_edges;
     
-    figure('name', ['strong edges for iteration ' num2str(iteration)]);
-    imshow(strong_edges);
+    %figure('name', ['strong edges for iteration ' num2str(iteration)]);
+    %imshow(strong_edges + image_threshold);
     
     iteration = iteration + 1;
 end
