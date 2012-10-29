@@ -3,7 +3,7 @@
 close all;
 clear all;
 
-image_filename = 'test.jpg';
+image_filename = 'test2.jpg';
 rotation_steps = [-10, -10, 20];
 max = 1;  % maximum value for a double-type image
 

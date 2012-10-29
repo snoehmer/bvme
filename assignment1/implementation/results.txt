@@ -1,0 +1,8 @@
+Task1:
+Nearest Neighbor Interpolation: PSNR = 15.474dB
+Bilinear Interpolation: PSNR = 15.5438dB
+Bicubic Interpolation: PSNR = 15.542dB
+
+Task2:
+Homebrew Gauss filter execution time: 0.83439s
+Matlab imfilter Gauss filter execution time: 0.02085s
