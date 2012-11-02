@@ -1,18 +1,18 @@
 % Assignment 1, Task 3: Canny Edge Detector
 
-%clear all;
+clear all;
 close all;
 
 
 %% common definitions
 
-image_filename = '../images/butterfly.jpg';
-%image_filename = 'testimage.png';
+%image_filename = '../images/butterfly.jpg';
+image_filename = '../images/elephant.jpg';
 
-gauss_sigma = 0.7;
+gauss_sigma = 0.8;
 
-threshold_low = 0.1;
-threshold_high = 0.5;
+threshold_low = 0.4;
+threshold_high = 0.8;
 
 
 %% read image
@@ -33,8 +33,8 @@ image_filtered = imfilter(image, kernel_gauss, 'replicate', 'conv');
 kernel_sobel_y = fspecial('sobel');
 kernel_sobel_x = kernel_sobel_y';
 
-dimage_x = imfilter(image, kernel_sobel_x, 'replicate', 'conv');
-dimage_y = imfilter(image, kernel_sobel_y, 'replicate', 'conv');
+dimage_x = imfilter(image_filtered, kernel_sobel_x, 'replicate', 'conv');
+dimage_y = imfilter(image_filtered, kernel_sobel_y, 'replicate', 'conv');
 
 % calculate magnitude and angle of gradient
 image_magnitude = sqrt(dimage_x .^ 2 + dimage_y .^ 2);

@@ -1,7 +1,13 @@
 Task1:
+test2.jpg, wrong mask:
 Nearest Neighbor Interpolation: PSNR = 15.474dB
 Bilinear Interpolation: PSNR = 15.5438dB
 Bicubic Interpolation: PSNR = 15.542dB
+
+test2s.jpg, right mask:
+Nearest Neighbor Interpolation: PSNR = 18.1638dB
+Bilinear Interpolation: PSNR = 20.1428dB
+Bicubic Interpolation: PSNR = 24.1064dB
 
 Task2:
 Homebrew Gauss filter execution time: 0.83439s

@@ -3,7 +3,7 @@
 close all;
 clear all;
 
-image_filename = 'test2.jpg';
+image_filename = 'test2s.jpg';
 rotation_steps = [-10, -10, 20];
 max = 1;  % maximum value for a double-type image
 
@@ -20,7 +20,7 @@ for i = 1:length(rotation_steps)
     mask = task1_rotate_bicubic(mask, rotation_steps(i));
 end
 
-mask = (abs(mask - 1) < 1e-3);
+mask = ~(abs(mask - 1) < 1e-3);
 
 
 %% variant 1: nearest neighbor interpolation
