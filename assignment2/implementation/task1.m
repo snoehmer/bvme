@@ -4,13 +4,14 @@ close all;
 clear all;
 
 % paths
-image_filename = '../images/cat.jpg';
-%image_filename = '../images/match1.jpg';
+%image_filename = '../images/cat.jpg';
+%image_filename = '../images/match2.jpg';
+image_filename = '../images/test.png';
 vlfeatroot = '/opt/vlfeat';
 
 % Harris corner detector parameters
 sigma = 0.5;
-threshold = 0.3;
+threshold = 0.1;
 
 % initialize VLFeat toolbox
 run([vlfeatroot '/toolbox/vl_setup']);

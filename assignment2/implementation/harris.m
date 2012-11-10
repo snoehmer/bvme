@@ -5,7 +5,8 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
 %   verbose enables image output if true
 
     k = 0.04;  % Harris k parameter
-    plot_details = false;
+    eigenval_scalefactor = 20;  % scales the eigenvalues for visibility
+    plot_details = false;  % set this to true to plot results of each step
 
     
     %% step 1: calculate gradients using Sobel
@@ -19,10 +20,10 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     if plot_details
         figure('name', 'Sobel results');
         subplot(1, 2, 1);
-        imshow(I_x);
+        imshow(I_x, []);
         title('I_x');
         subplot(1, 2, 2);
-        imshow(I_y);
+        imshow(I_y, []);
         title('I_y');
     end
     
@@ -36,13 +37,13 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     if plot_details
         figure('name', 'structure tensor');
         subplot(1, 3, 1);
-        imshow(I_x2);
+        imshow(I_x2, []);
         title('I_x2');
         subplot(1, 3, 2);
-        imshow(I_y2);
+        imshow(I_y2, []);
         title('I_y2');
         subplot(1, 3, 3);
-        imshow(I_xy);
+        imshow(I_xy, []);
         title('I_xy');
     end
     
@@ -58,13 +59,13 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     if plot_details
         figure('name', 'Gaussian results');
         subplot(1, 3, 1);
-        imshow(G_x2);
+        imshow(G_x2, []);
         title('G_x2');
         subplot(1, 3, 2);
-        imshow(G_y2);
+        imshow(G_y2, []);
         title('G_y2');
         subplot(1, 3, 3);
-        imshow(G_xy);
+        imshow(G_xy, []);
         title('G_xy');
     end
 
@@ -78,7 +79,7 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     
     if plot_details
         figure('name', 'HCR');
-        imshow(HCR);
+        imshow(HCR, []);
     end
     
     
@@ -89,7 +90,7 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     
     if plot_details
         figure('name', 'HCR_threshold');
-        imshow(HCR_threshold);
+        imshow(HCR_threshold, []);
     end
     
     
@@ -102,26 +103,36 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     % generate coordinates
     [pos_x pos_y] = meshgrid(1:size(HCR_nonmax, 2), 1:size(HCR_nonmax, 1));
     
-    % vectorize HCR and coordinates
-    HCR_v = HCR_nonmax(:);
-    pos_x_v = pos_x(:);
-    pos_y_v = pos_y(:);
-    
-    % remove 'zero' elements
-    L_nonzero = (HCR_v > 0);
-    HCR_v = HCR_v(L_nonzero);
-    pos_x_v = pos_x_v(L_nonzero);
-    pos_y_v = pos_y_v(L_nonzero);
-    
-    % sort HCR vector and get indices
-    [HCR_v_sorted, indices] = sort(HCR_v, 'descend');
-    
-    % calculate positions of sorted HCR values
-    pos_x_v_sorted = pos_x_v(indices);
-    pos_y_v_sorted = pos_y_v(indices);
     
     % perform non-maximum suppression around maximum values
-    for i = 1:length(HCR_v_sorted)
+    i = 1;
+    
+    while true
+        
+        % vectorize current HCR and coordinates
+        HCR_v = HCR_nonmax(:);
+        pos_x_v = pos_x(:);
+        pos_y_v = pos_y(:);
+
+        % remove 'zero' elements
+        L_nonzero = (HCR_v > 0);
+        HCR_v = HCR_v(L_nonzero);
+        pos_x_v = pos_x_v(L_nonzero);
+        pos_y_v = pos_y_v(L_nonzero);
+
+        % sort HCR vector and get indices
+        [HCR_v_sorted, indices] = sort(HCR_v, 'descend');
+
+        % calculate positions of sorted HCR values
+        pos_x_v_sorted = pos_x_v(indices);
+        pos_y_v_sorted = pos_y_v(indices);
+
+        
+        % stop calculation if all nonzero values are finished
+        if i > length(HCR_v_sorted)
+            break;
+        end
+    
         
         % calculate boundaries for the neighborhood
         y_start = max(1, pos_y_v_sorted(i) - nm_radius);
@@ -141,11 +152,14 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
         
         HCR_nonmax(L) = 0;
         
+        i = i + 1;
+        
     end
+    
     
     if plot_details
         figure('name', 'HCR_nonmax');
-        imshow(HCR_nonmax);
+        imshow(HCR_nonmax, []);
     end
     
     
@@ -203,7 +217,7 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     
     keypoints(1, :) = pos_x_v_sorted;
     keypoints(2, :) = pos_y_v_sorted;
-    keypoints(3, :) = 10 * eigenvalues;
+    keypoints(3, :) = eigenval_scalefactor * eigenvalues;
     keypoints(4, :) = eigenvector_orientations;
     
     
