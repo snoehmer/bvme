@@ -184,10 +184,13 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
         [V, D] = eig(A);
         
         % select smallest eigenvalue
-        [eigenvalues(i), eigenvect_pos] = min(diag(D));
+        [eigenval, eigenvect_pos] = min(diag(D));
         
         % select corresponding eigenvector
         eigenvect = V(:, eigenvect_pos);
+        
+        % calculate magnitude of smallest eigenvalue
+        eigenvalues(i) = abs(eigenval);
         
         % calculate eigenvector orientation
         eigenvector_orientations(i) = atan2(eigenvect(1), eigenvect(2));
