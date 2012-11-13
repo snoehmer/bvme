@@ -4,7 +4,8 @@ close all;
 clear all;
 
 % paths
-image_filename = '../images/match2.jpg';
+%image_filename = '../images/match2.jpg';
+image_filename = '../images/test.png';
 
 vlfeatroot = '/opt/vlfeat';
 
@@ -36,3 +37,5 @@ disp(['found ' num2str(size(keypoints, 2)) ' keypoints']);
 %% generate SIFT descriptors
 
 descriptors = SIFTdescriptor(image, keypoints, true);
+
+disp(['got ' num2str(size(descriptors, 2)) ' descriptors']);

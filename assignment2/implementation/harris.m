@@ -5,7 +5,7 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
 %   verbose enables image output if true
 
     k = 0.04;  % Harris k parameter
-    eigenval_scalefactor = 20;  % scales the eigenvalues for visibility
+    eigenval_scalefactor = 10;  % scales the eigenvalues for visibility
     plot_details = false;  % set this to true to plot results of each step
 
     
@@ -143,9 +143,10 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
         % logical mask 1 masks the neighborhood
         L1 = false(size(HCR_nonmax));
         L1(y_start:y_end, x_start:x_end) = true;
+        L1(pos_y_v_sorted(i), pos_x_v_sorted(i)) = false;
         
         % logical mask 2 masks the values that are smaller than the current value
-        L2 = (HCR_nonmax < HCR_v_sorted(i));
+        L2 = (HCR_nonmax <= HCR_v_sorted(i));
         
         % logical mask for non-maximum suppression in neighborhood is l1 AND l2
         L = L1 & L2;
@@ -217,17 +218,22 @@ function [keypoints] = harris(I, sigma, thresh, verbose)
     
     keypoints(1, :) = pos_x_v_sorted;
     keypoints(2, :) = pos_y_v_sorted;
-    keypoints(3, :) = eigenval_scalefactor * eigenvalues;
+    keypoints(3, :) = eigenvalues;
     keypoints(4, :) = eigenvector_orientations;
     
     
     %% step 8: display image with detected corners
     
     if verbose
+        
+        % scale the eigenvalue to increase the indicator size
+        keypoints_scaled = keypoints;
+        keypoints_scaled(3,:) = keypoints_scaled(3,:) * eigenval_scalefactor;
+    
         figure('name', 'image with detected corners');
         imshow(I);
         hold on;
-        vl_plotframe(keypoints);
+        vl_plotframe(keypoints_scaled);
         title('image with detected corners');
     end
     
