@@ -2,7 +2,7 @@ function [kp_match1, kp_match2] = simple_matching(keypoints1, descriptors1, keyp
 %SIMPLE_MATCHING performs simple matching between two keypoints/descriptors sets
 %   matching is done using Euclidean distances, ambiguous matches are discarded
 
-    distance_threshold = 0.5;
+    distance_threshold = 0.2;
     discard_ratio = 0.7;  % discard if ratio between 2 best matches is higher
 
     kp_match1 = [];

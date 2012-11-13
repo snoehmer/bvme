@@ -10,7 +10,7 @@ function [] = display_matches(I1, kp1, I2, kp2)
     kp_scalefactor = 10;
 
     images_size = [max(size(I1, 1), size(I2, 1)), size(I1, 2) + size(I2, 2)];
-    offset_i2_x = size(I2,2) + 1;
+    offset_i2_x = size(I1,2) + 1;
     
     images = zeros(images_size);
     

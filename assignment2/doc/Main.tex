@@ -47,9 +47,9 @@
 % information fields
 
 % general
-\newcommand{\DocumentTitle}{TITLE}
-\newcommand{\DocumentSubtitle}{SUBTITLE}
-\newcommand{\ShortTitle}{SHORT TITLE} % used in headers (keep short!)
+\newcommand{\DocumentTitle}{Image Processing and Pattern Recognition}
+\newcommand{\DocumentSubtitle}{Assignment 2}
+\newcommand{\ShortTitle}{BVME Assignment 2} % used in headers (keep short!)
 \newcommand{\DocumentAuthor}{Stefan Nöhmer (0830668)}
 \newcommand{\DocumentDate}{Graz, \today}
 %    for thesis only (will be ignored for reports)
@@ -104,9 +104,220 @@
 % **************************************************************************************************
 % user-defined part
 
-\chapter{blah}
+\chapter{Task 1: Harris Corner Detector}
 
-blah
+Für Task 1 sollte ein Harris Corner Detector implementiert werden. Dazu muss der Structure Tensor $ \begin{bmatrix} I_x^2 & I_x I_y \\ I_x I_y I_y^2 \end{bmatrix} $ berechnet und mit Gausskerneln geglättet werden. Je größer $\sigma$ des verwendeten Gaußkernels, desto mehr werden feine Strukturen geglättet, deswegen werden die Kanten in den feinen Strukturen ignoriert und Kanten in gröberen Strukturen erkannt.
+
+Die Eigenwerte der resultierenden Matrix müssen dann betrachtet werden. Die Eigenvektoren geben die Richtungen an, in denen die größte bzw. kleinste Änderung geschieht, die Eigenwerte geben den dazugehörigen Betrag der Änderung an. Für einen Eckpunkt soll die Änderung in alle Richtungen möglichst groß sein, deswegen sucht man Punkte, bei denen auch der kleinere Eigenwert (korrespondiert mit der kleinsten Änderung) möglichst groß ist.
+
+Da jedoch die Berechnung der Eigenwerte aufwändig ist, wurde stattdessen folgender Zusammenhang genutzt:
+
+\begin{equation}
+ det(A) = \Pi \lambda_i = \lambda_1 \cdot \lambda_2 \;\;\; trace(A) = \Sigma \lambda_i = \lambda_1 + \lambda_2
+\end{equation}
+
+Als Gewichtungsfunktion für die Eignung als Corner wurde das Harris-Cornermaß verwendet:
+
+\begin{equation}
+\label{eq:hcr}
+ HCR = det(A) - k \cdot trace(A)^2 = \lambda_1 \lambda_2 (1 - 2 k) - k (\lambda_1^2 + \lambda_2^2)
+\end{equation}
+
+Diese Funktion hat große Werte, wenn sowohl $\lambda_1$ als auch $\lambda_2$ groß sind (für $k$ wird üblicherweise ein kleiner Wert verwendet, wie $0.04$). Ist einer der Eigenwerte klein (oder sind beide klein), so nimmt die Funktion schnell ab und eignet sich daher gut als Cornermaß.
+
+\smallskip
+
+Der Detektor wurde wie in der Aufgabenstellung angegeben implementiert. Dazu wird das Bild zuerst mit einem Sobel-Kernel in x- und y-Richtung gefaltet, um die Gradienten zu erhalten. Dann wird der Structure Tensor berechnet und mit einem Gausskernel gefiltert. Aus diesen gefilterten Matrizen wird dann die Harris Corner Response wie in Gleichung~\ref{eq:hcr} berechnet. Die Corner Responses, die unter einem gewissen Threshold liegen, werden entfernt (auf 0 gesetzt), dann folgt eine Non-Maximum Suppression. Dabei werden die gefundenen Corner nach Stärke (HCR) sortiert. Beginnend mit dem stärksten Corner wird immer eine 5x5 Nachbarschaft des Corners untersucht. Befindet sich in dieser Nachbarschaft ein weiterer (schwächerer) Corner, so wird dieser ebenfalls entfernt.
+
+Zuletzt werden die gefundenen Keypoints generiert. Diese bestehen aus den Koordinaten, einem Scale (dargestellt durch den kleinsten Eigenwert) und einer Orientierung (dargestellt durch den Eigenvektor, der zu dem kleinsten Eigenwert gehört; die eigentliche Richtung des Gradienten steht aber normal auf diesen Eigenvektor).
+
+Mit der Funktion \texttt{vl\_plotframe} können die erkannten Eckpunkte in das Ausgangsbild eingezeichnet werden (dabei wurde jedoch die Scale skaliert, um die Punkte besser sichtbar zu machen). Bei der Verwendung dieser Funktion ist darauf zu achten, dass hier die Koordinaten vertauscht sind.
+
+Der Harris Corner Detector hat 3 Parameter:
+
+\begin{itemize}
+ \item \texttt{sigma} bestimmt die Glättung durch den Gausskernel. Je größer $\sigma$ gewählt wird, desto gröbere Strukturen werden betrachtet.
+ \item \texttt{thresh} bestimmt den Minimalwert von HCR, sodass ein Corner erkannt wird. Je niedriger dieser Wert, desto schwächere Corner werden erkannt (dadurch entstehen mehr Corner).
+ \item \texttt{k} ist der Parameter für die Harris Corner Response. Er bestimmt den Wert der Eigenwerte, die als Corner erkannt werden.
+\end{itemize}
+
+Abbildung~\ref{fig:t1_2} zeigt die erkannten Corner für \texttt{sigma} = 0.5, \texttt{thresh} = 0.1 und \texttt{k} = 0.04. Durch das geringe $\sigma$ werden auch Corner in feinen Strukturen erkannt (Schnur). 
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_2.png}
+ \caption{Ergebnis des Harris Corner Detectors mit \texttt{sigma} = 0.5, \texttt{thresh} = 0.1 und \texttt{k} = 0.04}
+ \label{fig:t1_2}
+\end{figure}
+
+Erhöht man nun \texttt{sigma} z.B. auf 4, entstehen die Corner in Abbildung~\ref{fig:t1_3}. Die feinen Strukturen werden nicht mehr erkannt, nur mehr gröbere Corner werden aufgenommen.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_3.png}
+ \caption{Ergebnis des Harris Corner Detectors mit \texttt{sigma} = 4, \texttt{thresh} = 0.1 und \texttt{k} = 0.04}
+ \label{fig:t1_3}
+\end{figure}
+
+Erhöht man jedoch \texttt{thresh} auf 0.5 (bei \texttt{sigma} = 0.5), werden zwar Corner in feinen Strukturen erkannt, jedoch nur welche mit höherer Corner Response (siehe Abbildung~\ref{fig:t1_4}). Dadurch nimmt auch die Anzahl der erkannten Corner ab. Setzt man den Threshold niedriger, werden auch schwächere Corner erkannt, dadurch steigt die Anzahl der erkannten Corner.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_4.png}
+ \caption{Ergebnis des Harris Corner Detectors mit \texttt{sigma} = 0.5, \texttt{thresh} = 0.5 und \texttt{k} = 0.04}
+ \label{fig:t1_4}
+\end{figure}
+
+Erhöht man den Parameter \texttt{k}, werden auch nur mehr Corner verwendet, deren Eigenwerte eher die Bedingungen für Eckpunkte erfüllen. Abbildung~\ref{fig:t1_5} zeigt das Ergebnis für \texttt{sigma} = 0.5, \texttt{thresh} = 0.1 und \texttt{k} = 0.15.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_5.png}
+ \caption{Ergebnis des Harris Corner Detectors mit \texttt{sigma} = 0.5, \texttt{thresh} = 0.1 und \texttt{k} = 0.15}
+ \label{fig:t1_5}
+\end{figure}
+
+\smallskip
+
+Der Harris Corner Detektor kann sehr effizient implementiert werden und arbeitet deswegen auch bei größeren Bildern recht schnell.
+
+Abbildungen~\ref{fig:t1_m1} und \ref{fig:t1_m2} zeigen, dass der Harris Corner Detector in ähnlichen Bildern ähnliche Corner wiederfindet, darum eignen sich die Corners auch zum Matching von 2 Bildern. Dieses Thema wird in den weiteren Kapiteln behandelt.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_m1.png}
+ \caption{Ergebnis des Harris Corner Detectors für \texttt{match1.jpg}}
+ \label{fig:t1_m1}
+\end{figure}
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t1_m2.png}
+ \caption{Ergebnis des Harris Corner Detectors für \texttt{match2.jpg}}
+ \label{fig:t1_m2}
+\end{figure}
+
+\clearpage
+
+
+
+\chapter{Task 2: SIFT Feature Descriptor}
+
+Ziel von Task 2 war es, eine vereinfachte Version des SIFT Deskriptors zu implementieren. Dazu wird um den erkannten Keypoint ein Patch ausgeschnitten, dessen Hauptorientierung geschätzt wird. Ist die Hauptorientierung bekannt, kann der gesamte Patch so rotiert werden, dass er eine kanonische Orientierung hat. Dadurch können die Patches dann direkt miteinander verglichen werden, was zur Rotationsinvarianz führt.
+
+Im nächsten Schritt werden die einzelnen Samples (Pixel) des rotierten Patches in 4x4 Bins aufgeteilt, wobei für jeden dieser Bins ein Histogramm aller Orientierungen berechnet wird. Diese Histogramme dienen dann als Feature Descriptor.
+
+
+\section{Abschätzung der Hauptorientierung}
+
+Die Hauptorientierung wird abgeschätzt, indem um den Keypoint ein Patch ausgeschnitten wird. Die Orientierungen jedes Samples dieses Patches werden dann aus den Gradienten berechnet. Aus diesen Orientierungen wird dann ein Histogramm bestimmt, welches die mit einem Gausskernel gewichteten Magnitudes der Gradienten enthält. Dadurch werden die Samples, die näher am Keypoint liegen, stärker gewichtet als die außen liegenden. In diesem Histogramm wird dann ein Peak gesucht, dieser zeigt die Hauptorientierung.
+
+
+\section{Erzeugung der Deskriptoren}
+
+Zur Erzeugung der Deskriptoren wird wiederum ein Patch um den Keypoint ausgeschnitten. Dieser Patch wird dann in die Hauptorientierung rotiert, um eine kanonische Orientierung und somit eine Rotationsinvarianz zu erreichen. Dazu werden sämtliche Koordinaten der Samples rotiert, und die Samples dann in 4x4 räumliche Bins eingeordnet. Außerdem wird die Orientierung jedes einzelnen Samples ebenfalls durch die Hauptorientierung korrigiert. Liegt ein Sample nach der Rotation außerhalb der Bins, wird es verworfen.
+
+Für jeden dieser entstandenen Bins wird nun wieder ein Orientierungs-Histogramm berechnet. Dazu werden wieder die Gradienten-Magnitudes der Samples mit einem Gausskernel gewichtet und dem entsprechenden Bin im Orientierungs-Histogramm zugeordnet.
+
+Alle dieser Histogramme der 4x4 Bins werden in einen Vektor zusammengefasst, welcher dann auf die Länge 1 normalisiert wird. Dadurch entsteht eine Beleuchtungsinvarianz. Um Außreißer zu unterdrücken, werden dann die Werte im Featurevektor auf 0.2 begrenzt, und der Featurevektor nochmals normalisiert. Dieser Vektor wird abgespeichert und dient als Deskriptor für den Keypoint.
+
+
+\section{Ergebnisse}
+
+Abbildung~\ref{fig:test} zeigt ein verwendetes Testbild für den Harris Corner Detector und den SIFT Deskriptor. Wendet man den Harris Corner Detector darauf an, entsteht das Bild in Abbildung~\ref{fig:t2_corners}. Man erkennt, dass als Orientierung der Eigenvektor verwendet wird, der dem kleinsten Eigenwert zugeordnet ist. Dadurch zeigt die Orientierung in Richtung der kleinsten Änderung, die Richtung der größten Änderung steht normal darauf.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images/test.png}
+ \caption{künstliches Testbild für Corner Detection und SIFT Descriptor}
+ \label{fig:test}
+\end{figure}
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t2_corners.png}
+ \caption{Ergebnis des Harris Corner Detectors bei dem Testbild}
+ \label{fig:t2_corners}
+\end{figure}
+
+Abbildung~\ref{fig:t2_2} zeigt einen SIFT-Deskriptor für einen (künstlichen) Eckpunkt des Testbildes. Für die Orientierung wurde nicht der Wert des Eigenvektors verwendet, sondern die bestimmte Hauptorientierung des Keypoints. Man erkennt, dass die Werte offensichtlich nicht mit dem Bild übereinstimmen. Das liegt daran, dass ich den genauen Aufbau des SIFT-Featurevektors nirgendwo finden konnte. Es gibt sehr viele Möglichkeiten, wie die 8 Bins der Histogramme in den 4x4 räumlichen Bins in dem Vektor angeordnet werden können. Die Anordnung düfte zwar halbwegs stimmen, weil eine Zuordnung zwischen den räumlichen Bins und den Histogrammen erkennbar ist. Die Orientierung der Histogramme stimmt aber nicht mit den Bilddaten überein, was an einer falschen Interpretation der einzelnen Elemente des Featurevektors liegt (\texttt{vl\_plotsiftdescriptor} ordnet die Werte des Vektors nicht so an, wie sie in dieser Implementierung in den Vektor gespeichert werden).
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t2_2.png}
+ \caption{Generierter SIFT-Descriptor für einen erkannten Keypoint}
+ \label{fig:t2_2}
+\end{figure}
+
+Auch in Abbildungen~\ref{fig:t2_3} und \ref{fig:t2_4} ist ein ähnliches Verhalten erkennbar. Die räumlichen Bins sehen prinzipiell richtig aus, die einzelnen Histogramme sehen qualitativ auch richtig aus; die Anordnung der einzelnen Histogramme scheint jedoch falsch zu sein. Für das Matching ist das jedoch egal, da für jeden Keypoint der gleiche Aufbau des Vektors verwendet wird.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t2_3.png}
+ \caption{Generierter SIFT-Descriptor für einen erkannten Keypoint}
+ \label{fig:t2_3}
+\end{figure}
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t2_4.png}
+ \caption{Generierter SIFT-Descriptor für einen erkannten Keypoint}
+ \label{fig:t2_4}
+\end{figure}
+
+Abbildung~\ref{fig:t2_1} zeigt einen SIFT-Deskriptor in einem realen Fall.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t2_1.png}
+ \caption{Generierter SIFT-Descriptor für einen erkannten Keypoint in einem realen Bild}
+ \label{fig:t2_1}
+\end{figure}
+
+Auch der SIFT-Deskriptor kann sehr effizient implementiert werden, und benötigt nur eine geringe Laufzeit.
+
+
+\clearpage
+
+
+
+\chapter{Task 3: Feature Matching}
+
+Für Task 3 sollte ein einfacher Matching-Algorithmus implementiert werden. Als Algorithmus wurde ein Brute-Force-Verfahren verwendet, welches einfach jeden Keypoint im Bild 1 mit jedem Keypoint im Bild 2 vergleicht. Als Fehlerfunktion wurde die Euklidische Distanz verwendet, die der SSD entspricht (Sum of squared differences). Zum Vergleichen von 2 Features werden die beiden Featurevektoren also voneinander subtrahiert, quadriert, und aufsummiert. Je kleiner diese Summe, desto besser stimmen die Featurevektoren zusammen. Ist diese Summe unter einem Threshold, wird der Punkt als Match erkannt. Dieser Threshold \texttt{distance\_threshold} ist ein Parameter, der das Verhalten dieses Matching-Algorithmus bestimmt.
+
+Zusätzliche wird noch die Eindeutigkeit dieser Zuordnung überprüft. Dazu wird nicht nur die Kombination mit der niedrigsten Euklidischen Distanz überprüft, sondern auch die Kombination mit der zweitniedrigsten. Dann wird das Verhältnis dieser beiden Distanzen berechnet. Sind die Matches ähnlich gut, sind auch die Distanzen ähnlich groß. Die Kombination ist also nicht eindeutig und wird verworfen. Die maximale Ähnlichkeit kann über den Parameter \texttt{discard\_ratio} eingestellt werden.
+
+Werden diese Bedingungen für zwei Keypoints und Deskriptoren erfüllt, landen die Keypoints auf einer Matches-Liste und werden in das Zielbild eingezeichnet. Abbildung~\ref{fig:t3_1} zeigt zwei erfolgreich gematchte Bilder, für die eine maximale Distanz von 0.2 gewählt wurde. Es gibt nur sehr wenige falsch gematchte Paare. Je niedriger die maximale Distanz, desto genauer passen die Matches zusammen, desto weniger Paare werden aber auch gefunden. Erhöht man die maximale Distanz, können schnell falsche Matches auftreten. Abbildung~\ref{fig:t3_2} zeigt das gleiche Bild mit einer maximalen Distanz von 0.5. Es werden viel mehr Paare gefunden, aber zahlreiche Keypoints wurden falsch gematcht.
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t3_1.png}
+ \caption{Matches für 2 Bilder mit niedriger maximaler Distanz}
+ \label{fig:t3_1}
+\end{figure}
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t3_2.png}
+ \caption{Matches für 2 Bilder mit hoher maximaler Distanz}
+ \label{fig:t3_2}
+\end{figure}
+
+
+Abbildung~\ref{fig:t3_3} zeigt die Rotationsinvarianz des SIFT-Deskriptors.
+
+
+\begin{figure}[htb]
+ \centering
+ \includegraphics[width=0.7\textwidth]{../images_out/t3_3.png}
+ \caption{Rotationsinvariant des SIFT-Deskriptors}
+ \label{fig:t3_3}
+\end{figure}
+
+
+\section{Verbesserungen}
+
+Die falsch gematchten Paare (Outliers) können durch spezielle Algorithmen, wie z.B. RANSAC eliminiert werden. Dieser Algorithmus würde im Bonusbeispiel behandelt werden, welches aus Zeitmangel jedoch nicht fertig gestellt wurde.
 
 
 % **************************************************************************************************

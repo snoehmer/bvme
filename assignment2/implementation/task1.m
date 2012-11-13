@@ -4,9 +4,10 @@ close all;
 clear all;
 
 % paths
-%image_filename = '../images/cat.jpg';
+image_filename = '../images/cat.jpg';
 %image_filename = '../images/match2.jpg';
-image_filename = '../images/test.png';
+%image_filename = '../images/test.png';
+
 vlfeatroot = '/opt/vlfeat';
 
 % Harris corner detector parameters

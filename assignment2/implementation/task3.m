@@ -4,8 +4,11 @@ close all;
 clear all;
 
 % paths
-image_filename1 = '../images/match1.jpg';
-image_filename2 = '../images/match2.jpg';
+%image_filename1 = '../images/match1.jpg';
+%image_filename2 = '../images/match2.jpg';
+
+image_filename1 = '../images/cat.jpg';
+image_filename2 = '../images/cat_r.jpg';
 
 vlfeatroot = '/opt/vlfeat';
 
