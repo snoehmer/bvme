@@ -76,6 +76,15 @@ void onSelect(int event, int x, int y, int, void*)
 
 int main(int argc, char* argv[])
 {
+  cv::Mat test = cv::Mat::ones(3, 3, CV_8U);
+  std::cout << "before: " << test << std::endl;
+
+  test.resize(5, cv::Scalar(5));
+  test.resize(5, cv::Scalar(6));
+
+  std::cout << "after: " << test << std::endl;
+
+
   Helper helper;
   bool success = helper.verifyInputArguments(argc, argv);
 

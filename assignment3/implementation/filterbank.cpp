@@ -45,10 +45,35 @@ void FilterBank::createFilterBank()
 
 cv::Mat FilterBank::createFilter(int support, double sigma, double tau)
 {
-    //TODO:
+    //TODO: done
     //create one filter of the filter bank
     //the filter should be of type CV_64F
     //don't forget to normalize the filter!
+
+	cv::Mat filter(support, support, CV_64F);
+
+	int center = support/2;
+
+	for(int row = 0; row < support; row++)
+	{
+		for(int col = 0; col < support; col++)
+		{
+			int x = col - center;
+			int y = row - center;
+
+			int r = sqrt(x*x + y*y);
+
+			filter.at<double>(row, col) = cos(M_PI * tau * r / sigma) * exp(-r*r / (2 * sigma * sigma));
+
+		}
+	}
+
+	cv::Scalar filterMean = cv::mean(filter);
+	cv::add(filter, -filterMean, filter);
+	cv::Scalar filterSum = cv::sum(cv::abs(filter));
+	cv::divide(filter, filterSum, filter);
+
+	return filter;
 }
 
 int FilterBank::size()
@@ -63,7 +88,16 @@ cv::Mat& FilterBank::get(int i)
 
 cv::Mat* FilterBank::apply(const cv::Mat& input) {
 
-    //TODO:
+    //TODO: done
     //filter the input with each filter
     //hint: cv::filter2D
+
+	cv::Mat* responses = new cv::Mat[filters.size()];
+
+	for(unsigned int i = 0; i < filters.size(); i++)
+	{
+		cv::filter2D(input, responses[i], CV_64F, filters[i]);
+	}
+
+	return responses;
 }
