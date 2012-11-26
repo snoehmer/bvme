@@ -104,10 +104,198 @@
 % **************************************************************************************************
 % user-defined part
 
-\chapter{Task 1: blah}
+\chapter{Texture Classification}
 
-blah
 
+\section{Algorithmus}
+
+In diesem Assignment sollte ein Texture Classificator impementiert werden, der auf dem in der Angabe erwähnten Algorithmus basiert.
+
+Der Algorithmus arbeitet in mehreren Schritten. Zuerst werden Klassen mit Referenzbildern gelernt. Dazu werden die Refererenzbilder geladen, mittelwertfrei gemacht und auf eine Standardabweichung von 1 normalisiert. Diese Bilder werden anschließend mit einer (ebenfalls normalisierten) Filterbank gefaltet, wobei alle Filterantworten für einen Pixel des Referenzbildes als Featurevektor dienen. Mit dem k-means Algorithmus werden aus diesen Vektoren dann 4 Clusterzentren berechnet, die dann als \emph{Textons} in einem Dictionary abgespeichert werden.
+
+Im nächsten Schritt werden aus weiteren Referenzbildern die Texturen gelernt. Dazu werden die Referenzbilder wieder mit der Filterbank gefaltet und die so entstehenden Textons klassifiziert. Dazu wird das Texton aus dem Dictionary ausgewählt, das die geringste Euklidische Distanz zum aktuellen Texton aufweist. Aus den Klassen der Textonen wird dann ein Histogramm ermittelt, welches das aktuelle Referenzbild repräsentiert (\emph{Model}). Für jedes Training Image entsteht also ein Model.
+
+Zur Klassifizierung wird das Eingangsbild wiederum mit der Filterbank gefaltet, und wie oben das Model des Bildes berechnet. Das so entstehende Histogramm des Models wird mit allen bereits bekannten Models über die $\chi^2$-Distanz verglichen. Das Modell mit der geringsten Distanz wird als Match verwendet.
+
+
+
+\section{Performance}
+
+Zum Testen der Performance wurde der Klassifikator auf mehrere vorgegebene Scenes, und auf eigene Bilder angewandt. Dabei wurden unterschiedliche Klassen als Referenz verwendet. Die Ergebnisse sind unten dargestellt.
+
+
+\subsection{Scene 1}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=0.7\textwidth]{./img/GrassLand2.png}
+ \caption{Scene 1: GrassLand2/context2.ppm}
+ \label{fig:GL2_context2}
+\end{figure}
+
+
+\subsubsection{Classes Kombination 1}
+
+Scene: \texttt{Scenes/GrassLand2/context2.ppm} (siehe Abbildung~\ref{fig:GL2_context2})
+
+Classes: \texttt{Grass, Clouds, Water}
+
+Wählt man Regions im Gras aus, erhält man als Ergebnis immer \texttt{Water}; bei wählt man eine Region um den Baum aus, wird der Baum als \texttt{Grass} klassifiziert. Auch der Himmel wird als \texttt{Water} klassifiziert.
+
+Die Klassifikation funktioniert bei dieser Kombination also eher schlecht, auch der Himmel als glatte, hauptsächlich einfarbige Fläche wird mit dem ähnlich aussehenden Wasser klassifiziert.
+
+
+\subsubsection{Classes Kombination 2}
+
+Scene: \texttt{Scenes/GrassLand2/context2.ppm} (siehe Abbildung~\ref{fig:GL2_context2})
+
+Classes: \texttt{Food, Sand, Grass}
+
+Auch hier wird meistens falsch klassifiziert: die meisten Regionen werden als \texttt{Food} erkannt, nur wenn man einen sehr großen Bereich auswählt, der den Baum und den größten Teil der Wiese enthält, wird diese Region richtig als \texttt{Grass} klassifiziert.
+
+Auch hier kann man also sagen dass die Klassifikation nur schlecht funktioniert.
+
+
+\subsubsection{Classes Kombination 3}
+
+Scene: \texttt{Scenes/GrassLand2/context2.ppm} (siehe Abbildung~\ref{fig:GL2_context2})
+
+Classes: \texttt{Metal, Grass, Stone}
+
+Wieder ist es so, dass eine große Region um Baum und im Gras zur Klassifikation \texttt{Grass} führt. Eine Region im Gras führt zur Klassifikation \texttt{Metal}, der Himmel zu \texttt{Stone}. Abbildung~\ref{fig:GL2_context2_grass} zeigt die ausgewählte Region und die Klassifikation \texttt{Grass}.
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=0.7\textwidth]{./img/GrassLand2_grass.png}
+ \caption{Scene 1: GrassLand2/context2.ppm, Klassifikation \texttt{Grass}}
+ \label{fig:GL2_context2_grass}
+\end{figure}
+
+
+\subsection{Scene 2}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=0.7\textwidth]{./img/BrickPaint.png}
+ \caption{Scene 2: BrickPaint/context1.ppm}
+ \label{fig:BP_context1}
+\end{figure}
+
+
+\subsubsection{Classes Kombination 1}
+
+Scene: \texttt{Scenes/BrickPaint/context1.ppm} (siehe Abbildung~\ref{fig:BP_context1})
+
+Classes: \texttt{Brick, Stone, Bark}
+
+Wählt man nur kleine Regionen (z.B. nur im Bereich mit den Ziegeln, oder nur im Bereich mit der Mauer), erhält man die Klassifikation \texttt{Bark}. Wählt man jedoch einen größeren Bereich (beinahe über das gesamte Bild), erhält man die richtige Klassifizierung \texttt{Brick}. Der Klassifikator funktioniert also nur für größere Bereiche gut.
+
+
+\subsubsection{Classes Kombination 2}
+
+Scene: \texttt{Scenes/BrickPaint/context1.ppm} (siehe Abbildung~\ref{fig:BP_context1})
+
+Classes: \texttt{Brick, Stone, Bark}
+
+Mit dieser Kombination von Klassen werden alle Bereiche im Bild als \texttt{Brick} klassifiziert. Der Klassifikator erkennt also die Ziegeltextur, aber auch die Wand als Ziegel.
+
+
+\subsection{Scene 3}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=0.7\textwidth]{./img/ValleyWater.png}
+ \caption{Scene 3: ValleyWater/context2.ppm}
+ \label{fig:VW_context2}
+\end{figure}
+
+\subsubsection{Classes Kombination 1}
+
+Scene: \texttt{Scenes/ValleyWater/context2.ppm} (siehe Abbildung~\ref{fig:VW_context2})
+
+Classes: \texttt{Water, Terrain, Leaves}
+
+Das Wasser im oberen Bereich wird richtig als \texttt{Water} klassifiziert, die Landschaft im unteren Bereich richtig als \texttt{Leaves} (richtig wenn man die Referenzbilder zur Klasse \texttt{Leaves} betrachtet). Der Klassifikator funktioniert hier also recht gut. Es konnte im Bild kein Bereich gefunden werden, der als \texttt{Terrain} klassifiziert wurde.
+
+
+
+\subsection{Scene 4}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=0.7\textwidth]{./img/GroundWaterCity.png}
+ \caption{Scene 4: GroundWaterCity/GroundWaterCity.0002.ppm}
+ \label{fig:GWC}
+\end{figure}
+
+\subsubsection{Classes Kombination 1}
+
+Scene: \texttt{Scenes/GroundWaterCity/GroundWaterCity.0002.ppm} (siehe Abbildung~\ref{fig:GWC})
+
+Classes: \texttt{Water, Buildings, Clouds}
+
+Der Himmel und das Wasser werden als \texttt{Water} klassifiziert, die Gebäude als \texttt{Buildings} - hier funktioniert der Klassifikator gut. Der Himmel ist ein großer, monoton einfärbiger Bereich, kann also leicht mit Wasser verwechselt werden.
+
+
+
+\subsection{Scene 5}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=\textwidth]{./img/img_6295.jpg}
+ \caption{Scene 5: Eigenes Bild 1}
+ \label{fig:PZ}
+\end{figure}
+
+\subsubsection{Classes Kombination 1}
+
+Scene: Eigenes Bild 1 (siehe Abbildung~\ref{fig:PZ})
+
+Classes: \texttt{Water, Terrain, Leaves}
+
+Der Himmel und das Wasser werden wieder als \texttt{Water} klassifiziert, was auch durchaus Sinn macht. Das Holz des Bootes wird als \texttt{Leaves} oder \texttt{Water} klassifiziert (vielleicht weil keine Holzstruktur als Referenz vorhanden ist), die Waldstücke im Hintergrund werden als \texttt{Leaves} klassifiziert, was auch in Ordnung ist wenn man die Referenzbilder für die Klasse \emph{Leaves} betrachtet. Einige Gebirgs- und Landschaftsstücke werden auch richtig als \texttt{Terrain} klassifiziert. Bei diesem Foto funktioniert die Klassifikation also sehr gut, was vielleicht auch an der höheren Auflösung liegen kann.
+
+
+\subsection{Scene 6}
+
+\begin{figure}[htb!]
+ \centering
+ \includegraphics[width=\textwidth]{./img/IMG_1736.JPG}
+ \caption{Scene 6: Eigenes Bild 2}
+ \label{fig:baum}
+\end{figure}
+
+\subsubsection{Classes Kombination 1}
+
+Scene: Eigenes Bild 2 (siehe Abbildung~\ref{fig:baum})
+
+Classes: \texttt{Buildings, Stone, Leaves}
+
+Das Gebäude (und Teile davon) werden richtig als \texttt{Building} klassifiziert, der Baum im Vordergrund meistens richtig als \texttt{Leaves}. Nur manche Ausschnitte des Baums werden als \texttt{Stone} klassifiziert. Der Klassifikator funktioniert also auch bei diesem Bild wieder recht gut.
+
+
+
+\chapter{Problems}
+
+Bei der Implementation selbst gab es keine Probleme, bis auf einen Fehler im File \texttt{learndictionary.cpp} in Zeile 19. Hier wird für die Responses auf falsche Art und Weise neuer Speicher angefordert, was anfangs für Verwirrung sorgte. Nach Rücksprache mit einigen Kollegen konnten wir aber feststellen, dass es sich um einen Fehler im Framework handelte, da wir unabhängig voneinander den Fehler korrigiert hatten.
+
+Leichte, aber schwer auffindbare Fehler konnten sich einschleichen, wenn man bei der Methode \texttt{Mat.at<T>(row, col)} den falschen Typ \texttt{T} angibt (z.B. \texttt{float} statt \texttt{double}).
+
+Außerdem muss bei den Methoden und Funktionen der OpenCV immer genau darauf geachtet werden, welche Typen verlangt werden. Leider ist die Dokumentation hier oft lückenhaft, und es muss etwas probiert werden.
+
+Ein Fehler, der sich auch immer wieder einschlich, war eine falsche Indizierung. Durch das lange Arbeiten mit Matlab im Rahmen der KU ist man inzwischen eine mit 1 beginnende Indizierung gewohnt. Durch diesen off-by-one Fehler kracht es hier schnell gewaltig.
+
+
+
+\chapter{Overall Performance}
+
+Je nach verwendetem Bild ist die Erfolgsquote des Klassifizierers unterschiedlich. Generell scheint die Leistung bei höheren Auflösungen besser zu sein (die Laufzeit damit jedoch auch).
+
+Manche Strukturen werden schwer erkannt, wie zum Beispiel \emph{Grass}. Vielleicht können diese eher feinen Strukturen von der verwendeten Filterbank nicht ordentlich verarbeitet werden.
+
+Die verwendete Filterbank, die runde Kernel verwendet, könnte auch mit den vielen geraden Linien, die bei Strukturen wie \emph{Grass} vorkommen, nicht gut umgehen können.
+
+Ein weiteres Manko ist die viel zu geringe Anzahl der Trainingsdaten. Würde man die Anzahl der verwendeten Referenzbilder erhöhen, würde auch die Performance des Klassifikators steigen, und mehrere Texturen richtig erkannt werden.
 
 % **************************************************************************************************
 % **************************************************************************************************

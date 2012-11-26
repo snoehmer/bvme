@@ -16,9 +16,9 @@ void learndictionary::addResponsesForImage(const cv::Mat& img, cv::Mat& response
     cv::Mat* filterResponse = FilterBank::getInstance().apply(img);
 
     int currentRow = responses.rows;
-    //responses.resize(img.rows * img.cols); //resize response matrix for new responses - WTF!?
+    //responses.resize(img.rows * img.cols); //resize response matrix for new responses - not correct
 
-    //TODO: ??? done ???
+    //TODO: done
     //calculate the responses for the image
     //for a mxn image you get m*n responses.
 
@@ -32,7 +32,7 @@ void learndictionary::addResponsesForImage(const cv::Mat& img, cv::Mat& response
     		for(int i = 0; i < responses.cols; i++)
 			{
     			int responseRow = currentRow + row * img.cols + col;
-				responses.at<float>(responseRow, i) = filterResponse[i].at<float>(row, col);
+				responses.at<float>(responseRow, i) = filterResponse[i].at<double>(row, col);
 			}
     	}
     }
@@ -74,17 +74,24 @@ cv::Mat learndictionary::learn(const std::vector<std::string>& classes, int imag
         addResponsesForClass(classDir, imagesPerClass, responses);
 
 
-        //TODO: ??? done ???
+        //TODO: done
         //create the cluster centers using the k-means algorithm
         //and write each result into centers.
         //hint: cv::kmeans, cv::vconcat
 
         cv::Mat labels;
-        cv::Mat classCenters;
+        cv::Mat classCenters = cv::Mat::zeros(clusterCentersPerClass, responses.cols, CV_32F);
 
         cv::kmeans(responses, clusterCentersPerClass, labels, cv::TermCriteria(), 5, cv::KMEANS_RANDOM_CENTERS, classCenters);
 
-        cv::vconcat(centers, classCenters, centers);
+        if(i == 0)
+        {
+        	centers = classCenters.clone();
+        }
+        else
+        {
+        	cv::vconcat(centers, classCenters, centers);
+        }
     }
 
     return centers;

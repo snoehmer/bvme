@@ -11,18 +11,21 @@ Classifier::Classifier()
 
 int Classifier::nearestCluster(const cv::Mat& sample)
 {
-    //TODO: ??? done ???
+    //TODO: done
     //return the index of the nearest cluster
     //in clusterCenters using the L2 norm.
 
-	int minDist2 = -1;
+	float minDist2 = -1;
 	int minDistIndex = -1;
 
 	for(int i = 0; i < clusterCenters.rows; i++)
 	{
-		int dist2;
+		float dist2;
 
-		cv::Mat distMat = sample - clusterCenters.row(i);
+		cv::Mat currentCluster = clusterCenters.row(i);
+		cv::Mat distMat = cv::Mat::zeros(1, clusterCenters.cols, CV_32F);
+
+		distMat = sample - currentCluster;
 
 		cv::Mat distMat2;
 		cv::multiply(distMat, distMat, distMat2);
@@ -45,38 +48,42 @@ cv::Mat Classifier::computeModel(const cv::Mat& img)
     cv::Mat* filterResponse = FilterBank::getInstance().apply(img);
     cv::Mat model = cv::Mat::zeros(1, clusterCenters.rows, CV_32F);
 
-    //TODO: ??? done ???
+    //TODO: done
     //compute the histogram of textons.
 
-    cv::Mat textons = cv::Mat::zeros(img.rows, img.cols, CV_32S);
+    //cv::Mat textons = cv::Mat::zeros(img.rows, img.cols, CV_32F);
 
     for(int row = 0; row < img.rows; row++)
     {
     	for(int col = 0; col < img.cols; col++)
     	{
     		// calculate feature vector for current pixel
-    		cv::Mat response = cv::Mat::zeros(1, clusterCenters.cols, CV_64F);
+    		cv::Mat response = cv::Mat::zeros(1, clusterCenters.cols, CV_32F);
 
     		for(int i = 0; i < clusterCenters.cols; i++)
     		{
-    			response.at<float>(1, i) = filterResponse[i].at<float>(row, col);
+    			response.at<float>(0, i) = filterResponse[i].at<double>(row, col);
     		}
 
     		// get nearest texton for current pixel's feature vector
-    		textons.at<int>(row, col) = nearestCluster(response);
+    		//textons.at<float>(row, col) = nearestCluster(response);
+
+    		// use simple histogram, not OpenCV's calcHist - same performance
+    		model.at<float>(0, nearestCluster(response)) += 1.0;
     	}
     }
 
     // calculate histogram
-    cv::Mat histogram;
-    int histSize[] = {clusterCenters.rows};
+    //cv::Mat histogram;
+    /*int histSize[] = {clusterCenters.rows};
     int channels[] = {0};
     float range[] = {0, clusterCenters.rows};
     const float* ranges[] = {range};
 
-    cv::calcHist(&textons, 1, channels, cv::Mat(), histogram, 1, histSize, ranges, true, false);
+    cv::calcHist(&textons, 1, channels, cv::Mat(), model, 1, histSize, ranges, true, false);
+	*/
 
-    return histogram;
+    return model;
 }
 
 void Classifier::learnClass(int label, const std::string& classDir, int imagesPerClass)
@@ -142,5 +149,5 @@ int Classifier::classify(const cv::Mat& img)
 	  }
   }
 
-  return minDistIndex;
+  return labels[minDistIndex];
 }
