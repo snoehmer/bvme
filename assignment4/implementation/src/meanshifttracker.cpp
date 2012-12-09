@@ -128,7 +128,7 @@ void MeanShiftTracker::track(cv::Mat& frame, int maxiter)
 	cv::Mat	y0_roi = frame(y0_box);
 	cv::Mat y1_roi;
 
-	cv::Mat weights = cv::Mat_<double>::zeros(1, QUANT*QUANT*QUANT);
+	cv::Mat weights = cv::Mat_<double>::zeros(y0_box.height, y0_box.width);
 
 
 	for(int cur_iter = 0; cur_iter < maxiter; cur_iter++)
@@ -203,6 +203,8 @@ void MeanShiftTracker::track(cv::Mat& frame, int maxiter)
 		if(y1 == y0)
 		{
 			// iteration finished
+			center_ = y1;
+			box_ = y1_box;
 			break;
 		}
 		else
