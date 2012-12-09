@@ -39,9 +39,9 @@ cv::Mat MeanShiftTracker::model(const cv::Mat& roi)
     double dist2;
 
     // calculate histogram for the whole ROI
-    for(unsigned int row = 0; row < roi.rows; row++)
+    for(int row = 0; row < roi.rows; row++)
     {
-    	for(unsigned int col = 0; col < roi.cols; col++)
+    	for(int col = 0; col < roi.cols; col++)
     	{
     		// get current BGR pixel
     		pixel = roi.at<cv::Vec3b>(row, col);
@@ -61,8 +61,8 @@ cv::Mat MeanShiftTracker::model(const cv::Mat& roi)
     }
 
     // normalize histogram
-    double histSum = cv::sum(hist);
-    hist = cv::divide(histSum, hist, hist);
+    double histSum = cv::sum(hist)[0];
+    cv::divide(histSum, hist, hist);
 
     return hist;
 }
@@ -131,7 +131,7 @@ void MeanShiftTracker::track(cv::Mat& frame, int maxiter)
 	cv::Mat weights = cv::Mat_<double>::zeros(1, QUANT*QUANT*QUANT);
 
 
-	for(unsigned int cur_iter = 0; cur_iter < maxiter; cur_iter++)
+	for(int cur_iter = 0; cur_iter < maxiter; cur_iter++)
 	{
 		// init target model
 		p_y0 = model(y0_roi);
@@ -142,9 +142,9 @@ void MeanShiftTracker::track(cv::Mat& frame, int maxiter)
 		double y1_col = 0;
 		double w_sum = 0;
 
-		for(unsigned int row = 0; row < y0_box.height; row++)
+		for(int row = 0; row < y0_box.height; row++)
 		{
-			for(unsigned int col = 0; col < y0_box.width; col++)
+			for(int col = 0; col < y0_box.width; col++)
 			{
 				unsigned int hist_index;
 				double q_u, p_y0_u;
